@@ -4,17 +4,17 @@ using NATKScheduleAPI.Services;
 namespace NATKScheduleAPI.Controllers
 {
     [ApiController]
-    [Route("[controller]")]
+    [Route("api")]
     public class NATKScheduleController : ControllerBase
     {
 
-        [HttpGet()]
+        [HttpGet("groups")]
         public async Task<IEnumerable<GroupInfo>> Get()
         {
             return await new NatkParser().GetGroupsAsync();
         }
 
-        [HttpGet("{url}")]
+        [HttpGet("schedule/{url}")]
         public async Task<GroupSchedule?> Get(string url)
         {
             return await new NatkParser().GetGroupScheduleAsync(url);
