@@ -11,19 +11,19 @@ EXPOSE 8080
 FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
 ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
-COPY ["NATKSheduleAPI/NATKSheduleAPI.csproj", "NATKSheduleAPI/"]
-RUN dotnet restore "./NATKSheduleAPI/NATKSheduleAPI.csproj"
+COPY ["NATKSheduleAPI/NATKScheduleAPI.csproj", "NATKScheduleAPI/"]
+RUN dotnet restore "./NATKScheduleAPI/NATKScheduleAPI.csproj"
 COPY . .
-WORKDIR "/src/NATKSheduleAPI"
-RUN dotnet build "./NATKSheduleAPI.csproj" -c $BUILD_CONFIGURATION -o /app/build
+WORKDIR "/src/NATKScheduleAPI"
+RUN dotnet build "./NATKScheduleAPI.csproj" -c $BUILD_CONFIGURATION -o /app/build
 
 # Этот этап используется для публикации проекта службы, который будет скопирован на последний этап
 FROM build AS publish
 ARG BUILD_CONFIGURATION=Release
-RUN dotnet publish "./NATKSheduleAPI.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
+RUN dotnet publish "./NATKScheduleAPI.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
 
 # Этот этап используется в рабочей среде или при запуске из VS в обычном режиме (по умолчанию, когда конфигурация отладки не используется)
 FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
-ENTRYPOINT ["dotnet", "NATKSheduleAPI.dll"]
+ENTRYPOINT ["dotnet", "NATKScheduleAPI.dll"]
