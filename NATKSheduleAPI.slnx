@@ -2,5 +2,5 @@
   <Folder Name="/Элементы решения/">
     <File Path=".github/workflows/deploy.yml" />
   </Folder>
-  <Project Path="NATKSheduleAPI/NATKScheduleAPI.csproj" />
+  <Project Path="NATKScheduleAPI/NATKScheduleAPI.csproj" />
 </Solution>
