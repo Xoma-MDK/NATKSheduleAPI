@@ -1,14 +1,11 @@
-name: Build and Deploy to VPS
+name: Build and Deploy via Portainer Webhook
 
 on:
   push:
     branches: [ main, master ]
-  pull_request:
-    branches: [ main, master ]
 
 env:
   IMAGE_NAME: natk-parser
-  VPS_REGISTRY: ${{ secrets.VPS_REGISTRY }}
 
 jobs:
   build-and-test:
@@ -21,7 +18,7 @@ jobs:
     - name: Setup .NET
       uses: actions/setup-dotnet@v3
       with:
-        dotnet-version: '10.0.x'
+        dotnet-version: '8.0.x'
 
     - name: Restore dependencies
       run: dotnet restore
@@ -35,7 +32,6 @@ jobs:
   build-and-push:
     needs: build-and-test
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
 
     steps:
     - name: Checkout code
@@ -50,44 +46,26 @@ jobs:
         username: ${{ secrets.DOCKERHUB_USERNAME }}
         password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-    - name: Extract metadata for Docker
-      id: meta
-      uses: docker/metadata-action@v5
-      with:
-        images: ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}
-        tags: |
-          type=ref,event=branch
-          type=ref,event=pr
-          type=semver,pattern={{version}}
-          type=semver,pattern={{major}}.{{minor}}
-          type=sha,prefix={{branch}}-
-
     - name: Build and push Docker image
       uses: docker/build-push-action@v5
       with:
         context: .
         file: ./Dockerfile
-        platforms: linux/amd64,linux/arm64
         push: true
-        tags: ${{ steps.meta.outputs.tags }}
-        labels: ${{ steps.meta.outputs.labels }}
-        cache-from: type=gha
-        cache-to: type=gha,mode=max
+        tags: |
+          ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:latest
+          ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
 
   deploy:
     needs: build-and-push
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-
-    - name: Trigger Portainer webhook (optional)
+    - name: Trigger Portainer Webhook
       run: |
         curl -X POST "${{ secrets.PORTAINER_WEBHOOK_URL }}" \
           -H "Content-Type: application/json" \
           -d '{
-            "stackName": "${{ env.IMAGE_NAME }}",
-            "image": "${{ secrets.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:latest"
+            "image": "${{ secrets.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:latest",
+            "stackName": "natk-parser"
           }'
