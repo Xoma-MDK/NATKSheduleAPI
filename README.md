@@ -50,6 +50,14 @@ docker run -d -p 8080:80 --name natk-parser natk-parser
 
 ## 🎯 Использование
 
+### Docker Image
+
+Клонирование образа
+
+```
+docker pull xomamdk/natk-parser
+```
+
 ## 🔧 API Endpoints
 
 Приложение предоставляет следующие HTTP endpoints:
